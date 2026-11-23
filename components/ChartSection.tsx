@@ -22,11 +22,10 @@ function Card({ track, onPlay }: { track: Track; onPlay: () => void }) {
   const playable = track.source !== "youtube" || Boolean(track.youtubeId);
   const play = () => {
     if (!playable) return;
-    console.log("🎵 КЛИК:", track.title, track.youtubeId);
     onPlay();
   };
   return (
-    <article onClick={play} className="group w-40 shrink-0 cursor-pointer rounded-lg bg-elevated p-3 transition hover:bg-highlight">
+    <article onClick={play} className="group w-40 shrink-0 cursor-pointer rounded-lg border border-white/10 bg-elevated p-3 transition duration-200 hover:scale-[1.03] hover:bg-highlight">
       <div className="relative">
         <CoverArt title={track.title} color={track.coverColor} accent={track.coverAccent} coverUrl={track.coverUrl} fallbackUrl={ytCover(track.youtubeId)} className="aspect-square w-full shadow-lift" />
         <button
@@ -37,7 +36,7 @@ function Card({ track, onPlay }: { track: Track; onPlay: () => void }) {
             event.stopPropagation();
             play();
           }}
-          className="absolute bottom-2 right-2 flex h-11 w-11 translate-y-2 items-center justify-center rounded-full bg-green text-black opacity-0 shadow-lift transition duration-200 hover:scale-105 hover:bg-green-hover group-hover:translate-y-0 group-hover:opacity-100 disabled:opacity-40"
+          className="absolute bottom-2 right-2 flex h-11 w-11 translate-y-2 scale-75 items-center justify-center rounded-full bg-green text-black opacity-0 shadow-lift transition duration-200 hover:scale-105 hover:bg-green-hover group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 disabled:opacity-40"
         >
           <Play className="ml-0.5 h-4 w-4 fill-black" />
         </button>

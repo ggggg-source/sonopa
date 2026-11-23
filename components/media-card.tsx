@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Play } from "lucide-react";
+import { Play, Shuffle } from "lucide-react";
 import { CoverArt } from "@/components/cover";
 import { cn } from "@/lib/format";
 
@@ -13,11 +13,12 @@ type Props = {
   coverUrl?: string;
   href?: string;
   onPlay: () => void;
+  onShuffle?: () => void;
 };
 
-export function MediaCard({ title, subtitle, color, accent, coverUrl, href, onPlay }: Props) {
+export function MediaCard({ title, subtitle, color, accent, coverUrl, href, onPlay, onShuffle }: Props) {
   return (
-    <article className="group rounded-lg bg-elevated p-3 transition hover:bg-highlight">
+    <article className="group rounded-lg border border-white/10 bg-elevated p-3 transition duration-200 hover:scale-[1.03] hover:bg-highlight">
       <div className="relative">
         <CoverArt title={title} color={color} accent={accent} coverUrl={coverUrl} className="aspect-square w-full shadow-lift" />
         <button
@@ -28,10 +29,24 @@ export function MediaCard({ title, subtitle, color, accent, coverUrl, href, onPl
             event.stopPropagation();
             onPlay();
           }}
-          className="absolute bottom-2 right-2 flex h-12 w-12 translate-y-2 items-center justify-center rounded-full bg-green text-black opacity-0 shadow-lift transition duration-200 hover:scale-105 hover:bg-green-hover group-hover:translate-y-0 group-hover:opacity-100"
+          className="absolute bottom-2 right-2 flex h-12 w-12 translate-y-2 scale-75 items-center justify-center rounded-full bg-green text-black opacity-0 shadow-lift transition duration-200 hover:scale-105 hover:bg-green-hover group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100"
         >
           <Play className="ml-0.5 h-5 w-5 fill-black" />
         </button>
+        {onShuffle ? (
+          <button
+            type="button"
+            aria-label={`Перемешать ${title}`}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onShuffle();
+            }}
+            className="absolute bottom-2 left-2 flex h-10 w-10 translate-y-2 scale-75 items-center justify-center rounded-full bg-black/70 text-white opacity-0 shadow-lift backdrop-blur transition duration-200 hover:bg-white hover:text-black group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100"
+          >
+            <Shuffle className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
       {href ? (
         <Link href={href} className="mt-3 block truncate font-semibold hover:underline">

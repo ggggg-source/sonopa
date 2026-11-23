@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { X } from "lucide-react";
-import { useProgress } from "@/components/player-provider";
+import { Check, Copy, X } from "lucide-react";
+import toast from "react-hot-toast";
+import { usePlayback, useProgress } from "@/components/player-provider";
+import { cn } from "@/lib/format";
 import type { Track } from "@/types";
 
 type SyncedLine = { time: number; text: string };
@@ -33,6 +35,8 @@ function Skeleton() {
 
 export function LyricsPanel({ track, onClose }: { track: Track | null; onClose: () => void }) {
   const { position } = useProgress();
+  const { seek } = usePlayback();
+  const [copied, setCopied] = useState(false);
   const [synced, setSynced] = useState<SyncedLine[] | null>(null);
   const [plain, setPlain] = useState<string | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "missing">("loading");
@@ -88,16 +92,38 @@ export function LyricsPanel({ track, onClose }: { track: Track | null; onClose: 
   if (!track) return null;
 
   return (
-    <aside className="fixed bottom-24 right-0 top-0 z-40 flex w-96 max-w-[calc(100vw-0.5rem)] flex-col border-l border-white/10 bg-[#181818] shadow-lift">
+    <aside className="fixed bottom-24 right-0 top-0 z-40 flex w-96 max-w-[calc(100vw-0.5rem)] flex-col border-l border-white/10 bg-[#1a1a1a] shadow-lift">
       <div className="flex items-start justify-between gap-3 px-5 pb-3 pt-5">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted">Текст песни</p>
           <h2 className="mt-1 truncate text-lg font-bold">{track.title}</h2>
           <p className="truncate text-sm text-muted">{track.artist}</p>
         </div>
-        <button type="button" aria-label="Закрыть" onClick={onClose} className="rounded-full p-2 text-muted hover:bg-white/10 hover:text-white">
-          <X className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            aria-label="Копировать текст"
+            title="Копировать текст"
+            onClick={async () => {
+              const text = synced?.length ? synced.map((l) => l.text).join("\n") : plain;
+              if (!text) return;
+              try {
+                await navigator.clipboard.writeText(text);
+                setCopied(true);
+                toast.success("Текст скопирован");
+                setTimeout(() => setCopied(false), 1500);
+              } catch {
+                toast.error("Не удалось скопировать");
+              }
+            }}
+            className="rounded-full p-2 text-muted hover:bg-white/10 hover:text-white"
+          >
+            {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
+          </button>
+          <button type="button" aria-label="Закрыть" onClick={onClose} className="rounded-full p-2 text-muted hover:bg-white/10 hover:text-white">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       <div ref={scrollRef} className="scrollbar-thin min-h-0 flex-1 overflow-y-auto px-5 pb-8">
@@ -109,7 +135,9 @@ export function LyricsPanel({ track, onClose }: { track: Track | null; onClose: 
               <p
                 key={`${line.time}-${index}`}
                 ref={index === activeIndex ? activeRef : undefined}
-                className={index === activeIndex ? "text-base font-semibold text-white" : "text-base text-[#b3b3b3]"}
+                onClick={() => seek(line.time)}
+                className={cn("cursor-pointer rounded px-1 py-0.5 transition hover:bg-white/10", index === activeIndex ? "text-base font-semibold text-white" : "text-base text-[#b3b3b3]")}
+                title="Перемотать к этой строке"
               >
                 {line.text}
               </p>

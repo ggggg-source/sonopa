@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Search, WifiOff } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, Search, WifiOff } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { UserMenu } from "@/components/UserMenu";
 import { useOnline } from "@/components/use-online";
 
-export function TopBar() {
+export function TopBar({ onMenu }: { onMenu?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
@@ -16,6 +17,11 @@ export function TopBar() {
 
   return (
     <header className="sticky top-0 z-20 flex items-center gap-2 bg-gradient-to-b from-black/80 to-black/20 px-3 py-3 backdrop-blur md:gap-3 md:px-5">
+      {onMenu ? (
+        <button type="button" aria-label="Открыть меню" onClick={onMenu} className="rounded-full bg-black/70 p-2 hover:bg-highlight md:hidden">
+          <Menu className="h-5 w-5" />
+        </button>
+      ) : null}
       <button type="button" aria-label="Назад" onClick={() => router.back()} className="rounded-full bg-black/70 p-1.5 hover:bg-highlight">
         <ChevronLeft className="h-5 w-5" />
       </button>
@@ -50,9 +56,13 @@ export function TopBar() {
             Офлайн
           </span>
         ) : null}
-        <Link href="/login" className="rounded-full bg-black/70 px-3 py-1.5 text-sm font-semibold hover:bg-highlight">
-          {user ? user.name : "Войти"}
-        </Link>
+        {user ? (
+          <UserMenu />
+        ) : (
+          <Link href="/login" className="rounded-full bg-black/70 px-3 py-1.5 text-sm font-semibold hover:bg-highlight">
+            Войти
+          </Link>
+        )}
       </div>
     </header>
   );

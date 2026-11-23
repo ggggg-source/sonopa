@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MoreHorizontal, Pause, Play } from "lucide-react";
+import { Heart, MoreHorizontal, Pause, Play } from "lucide-react";
 import { CoverArt, sourceLabel, ytCover } from "@/components/cover";
 import { useLibrary } from "@/components/library-provider";
+import { RepostButton } from "@/components/RepostButton";
 import { usePlayback } from "@/components/player-provider";
 import { formatAdded, formatTime, cn } from "@/lib/format";
 import type { Track } from "@/types";
@@ -28,7 +29,7 @@ type Props = {
 };
 
 export function TrackRow({ track, index, queue, playlistId, addedAt, canRemove }: Props) {
-  const { playlists, addTrack, removeTrack } = useLibrary();
+  const { playlists, addTrack, removeTrack, isLiked, toggleLike } = useLibrary();
   const { current, playing, playTrack, toggle } = usePlayback();
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -75,6 +76,14 @@ export function TrackRow({ track, index, queue, playlistId, addedAt, canRemove }
       <p className="hidden truncate text-sm text-muted sm:block">{track.album}</p>
       <p className="hidden truncate text-sm text-muted lg:block">{addedAt ? formatAdded(addedAt) : sourceLabel(track)}</p>
       <div className="flex items-center gap-2">
+        <button
+          type="button"
+          aria-label={isLiked(track.id) ? "Убрать из любимых" : "В любимые"}
+          onClick={(e) => { e.stopPropagation(); toggleLike(track); }}
+          className={cn("hidden rounded-full p-1.5 transition hover:bg-highlight sm:block", isLiked(track.id) ? "text-white" : "text-muted hover:text-white")}
+        >
+          <Heart className={cn("h-4 w-4", isLiked(track.id) && "fill-white")} />
+        </button>
         <span className="w-12 text-right text-sm text-muted">{formatTime(track.duration)}</span>
         <button
           type="button"
@@ -91,7 +100,7 @@ export function TrackRow({ track, index, queue, playlistId, addedAt, canRemove }
       {menu ? (
         <div
           ref={menuRef}
-          className="fixed z-50 w-56 rounded-md bg-[#282828] p-1 text-sm shadow-lift"
+          className="fixed z-50 w-56 rounded-md bg-[#242424] p-1 text-sm shadow-lift"
           style={{ left: Math.max(8, menu.x - 200), top: Math.min(menu.y, window.innerHeight - 280) }}
         >
           <p className="px-3 py-2 text-xs uppercase tracking-wide text-muted">Добавить в плейлист</p>
@@ -122,6 +131,13 @@ export function TrackRow({ track, index, queue, playlistId, addedAt, canRemove }
               Удалить из плейлиста
             </button>
           ) : null}
+          <div className="mt-1">
+            <RepostButton
+              track={track}
+              label="Репостнуть"
+              className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm hover:bg-white/10"
+            />
+          </div>
         </div>
       ) : null}
     </div>

@@ -5,17 +5,22 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        base: "#121212",
-        elevated: "#181818",
-        highlight: "#282828",
+        base: "#0a0a0a",
+        elevated: "#1a1a1a",
+        highlight: "#242424",
         muted: "#b3b3b3",
+        // Чёрно-белый акцент: токен green оставлен для совместимости классов,
+        // визуально это белый (bg-green → белая кнопка с чёрным текстом).
         green: {
-          DEFAULT: "#1DB954",
-          hover: "#1ed760",
+          DEFAULT: "#ffffff",
+          hover: "#d4d4d4",
         },
       },
       boxShadow: {
-        lift: "0 8px 24px rgb(0 0 0 / 0.45)",
+        lift: "0 8px 24px rgb(0 0 0 / 0.6)",
+      },
+      transitionTimingFunction: {
+        out: "cubic-bezier(0.4, 0, 0.2, 1)",
       },
     },
   },

@@ -28,7 +28,7 @@ export function LoginView() {
         <h1 className="text-3xl font-extrabold">Вход в Sonora</h1>
         <p className="mt-2 text-sm text-muted">
           {auth.configured
-            ? "Почта и Google идут через Supabase. Плейлисты и прогресс синхронизируются с аккаунтом."
+            ? "Вход через email и пароль или Google. Плейлисты и прогресс синхронизируются с аккаунтом."
             : "Ключи Supabase не заданы. Можно слушать в демо-режиме: библиотека останется в этом браузере."}
         </p>
         {auth.user ? (

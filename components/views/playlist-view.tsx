@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Clock3, Download, Pause, Pencil, Play } from "lucide-react";
+import { Clock3, Download, Pause, Pencil, Play, Share2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { CoverArt } from "@/components/cover";
 import { useAuth } from "@/components/auth-provider";
 import { useLibrary } from "@/components/library-provider";
@@ -34,7 +35,7 @@ export function PlaylistView({ id }: { id: string }) {
 
   return (
     <div>
-      <header className="flex flex-col gap-6 px-4 pb-6 pt-4 md:flex-row md:items-end md:px-6" style={{ background: `linear-gradient(180deg, ${playlist.coverColor}cc 0%, #121212 100%)` }}>
+      <header className="flex flex-col gap-6 px-4 pb-6 pt-4 md:flex-row md:items-end md:px-6" style={{ background: `linear-gradient(180deg, ${playlist.coverColor}cc 0%, #0a0a0a 100%)` }}>
         <CoverArt title={playlist.name} color={playlist.coverColor} accent={playlist.coverAccent} className="h-44 w-44 shadow-lift md:h-56 md:w-56" rounded="rounded-md" />
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-widest">Плейлист</p>
@@ -73,6 +74,36 @@ export function PlaylistView({ id }: { id: string }) {
           >
             <Download className="h-5 w-5" />
             {library.cachingId === playlist.id ? "Сохраняем…" : offline ? "Убрать офлайн" : "Скачать офлайн"}
+          </button>
+          <button
+            type="button"
+            aria-label="Репостнуть плейлист"
+            title="Репостнуть плейлист"
+            onClick={async () => {
+              if (!user || user.provider !== "supabase") {
+                toast("Войдите, чтобы делать репосты");
+                return;
+              }
+              try {
+                const res = await fetch("/api/reposts", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ type: "playlist", playlistId: playlist.id, title: playlist.name, artist: "", cover: "" }),
+                });
+                const json = (await res.json()) as { success?: boolean; error?: string };
+                if (!res.ok || json.success === false) {
+                  toast.error(json.error === "already reposted" ? "Уже репостнуто" : json.error ?? "Ошибка репоста");
+                  return;
+                }
+                toast.success("Репост добавлен");
+              } catch {
+                toast.error("Нет сети");
+              }
+            }}
+            className="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-muted hover:text-white"
+          >
+            <Share2 className="h-5 w-5" />
+            Репост
           </button>
         </div>
         {tracks.length === 0 ? (

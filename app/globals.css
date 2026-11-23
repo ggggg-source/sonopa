@@ -13,14 +13,20 @@ body {
 
 body {
   margin: 0;
-  background: #121212;
+  background: #0a0a0a;
   color: #fff;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 ::selection {
-  background: #1db954;
+  background: #fff;
   color: #000;
+}
+
+/* Focus-visible для a11y: белая обводка */
+:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
 }
 
 .scrollbar-thin {
@@ -96,3 +102,27 @@ body {
   opacity: 0.02;
   pointer-events: none;
 }
+
+button:active { transform: scale(0.97); }
+
+/* ── Полировка: фокус, карточки, скролл ───────────────── */
+:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+article, [class*="bg-card"], [class*="bg-elevated"] {
+  transition: transform .25s cubic-bezier(.4,0,.2,1), background-color .25s, border-color .25s, box-shadow .25s;
+}
+article:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,.45);
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 8px; border: 2px solid #0a0a0a; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.25); }
+::-webkit-scrollbar-track { background: transparent; }
+* { -webkit-overflow-scrolling: touch; }
+
+::selection { background: rgba(255,255,255,.85); color: #000; }

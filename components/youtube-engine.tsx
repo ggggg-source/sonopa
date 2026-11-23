@@ -48,10 +48,11 @@ type Props = {
   onProgress: (position: number, duration: number) => void;
   onEnded: () => void;
   onError: (message: string) => void;
+  onBuffering?: (buffering: boolean) => void;
   seekRef: React.MutableRefObject<((time: number) => void) | null>;
 };
 
-export function YouTubeEngine({ videoId, playing, volume, startToken, startAt, onProgress, onEnded, onError, seekRef }: Props) {
+export function YouTubeEngine({ videoId, playing, volume, startToken, startAt, onProgress, onEnded, onError, onBuffering, seekRef }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<Player | null>(null);
   const readyRef = useRef(false);
@@ -60,6 +61,8 @@ export function YouTubeEngine({ videoId, playing, volume, startToken, startAt, o
   const endedRef = useRef(onEnded);
   const errorRef = useRef(onError);
   const progressRef = useRef(onProgress);
+  const bufferingRef = useRef(onBuffering);
+  bufferingRef.current = onBuffering;
   videoRef.current = videoId;
   playingRef.current = playing;
   endedRef.current = onEnded;
@@ -93,6 +96,8 @@ export function YouTubeEngine({ videoId, playing, volume, startToken, startAt, o
             if (!playingRef.current) playerRef.current.pauseVideo();
           },
           onStateChange: (event: { data: number }) => {
+            // 3 = BUFFERING, 1 = PLAYING
+            bufferingRef.current?.(event.data === 3);
             if (event.data === 0) endedRef.current();
           },
           onError: () => errorRef.current("Это видео нельзя встроить. Выберите другой результат."),

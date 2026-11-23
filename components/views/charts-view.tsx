@@ -124,7 +124,7 @@ export function ChartsView() {
       ) : type === "artists" ? (
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {(data?.artists ?? []).map((artist, index) => (
-            <div key={artist.name} className="rounded-lg bg-elevated p-4 text-center">
+            <div key={artist.name} className="rounded-lg border border-white/10 bg-elevated p-4 text-center">
               <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-highlight text-xl font-extrabold text-green">{index + 1}</span>
               <p className="mt-3 truncate font-semibold">{artist.name}</p>
               <p className="text-xs text-muted">{formatCount(artist.playcount)} прослушиваний</p>

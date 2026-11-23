@@ -13,7 +13,8 @@ export const catalog: Track[] = tracks.map((track) => ({
   duration: track.duration,
   coverColor: track.coverColor,
   coverAccent: track.coverAccent,
-  coverUrl: track.cover,
+  // Обложка — превью YouTube-видео; picsum убран (цель: реальные обложки без внешних зависимостей)
+  coverUrl: track.youtubeId ? `https://i.ytimg.com/vi/${track.youtubeId}/hqdefault.jpg` : undefined,
   explicit: track.explicit,
   youtubeId: track.youtubeId,
   source: "catalog",
@@ -63,12 +64,12 @@ function toPlaylist(playlist: MockPlaylist): Playlist {
 export const seedPlaylists: Playlist[] = playlists.map(toPlaylist);
 
 export const coverPalette = [
-  ["#1DB954", "#0d3b22"],
-  ["#E8115B", "#3a0d1c"],
-  ["#7358FF", "#24185C"],
-  ["#F5A623", "#5c3b08"],
-  ["#14B8A6", "#083833"],
-  ["#F472B6", "#5B2142"],
-  ["#38BDF8", "#0C4A6E"],
-  ["#FB7185", "#4C0519"],
+  ["#ffffff", "#3a3a3a"],
+  ["#d4d4d4", "#262626"],
+  ["#a3a3a3", "#1c1c1c"],
+  ["#f5f5f5", "#333333"],
+  ["#e5e5e5", "#2e2e2e"],
+  ["#b3b3b3", "#242424"],
+  ["#cfcfcf", "#303030"],
+  ["#9a9a9a", "#202020"],
 ];

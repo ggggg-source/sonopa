@@ -15,36 +15,48 @@ type Props = {
 };
 
 // Обложка с цепочкой fallback: основная → fallbackUrl (YouTube thumb) → градиент с буквой.
+// Обычный <img> + CSS transition — не зависит от JS-анимаций, обложка видна всегда.
 export function CoverArt({ title, color, accent, coverUrl, fallbackUrl, className, rounded = "rounded-md" }: Props) {
   const [stage, setStage] = useState(0);
-  useEffect(() => setStage(0), [coverUrl, fallbackUrl]);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    setStage(0);
+    setLoaded(false);
+  }, [coverUrl, fallbackUrl]);
 
-  const src = stage === 0 ? coverUrl : stage === 1 ? fallbackUrl : undefined;
+  const candidates = [coverUrl, fallbackUrl].filter((u): u is string => Boolean(u));
+  const src = candidates[Math.min(stage, candidates.length - 1)];
 
   return (
     <div
       className={cn("relative overflow-hidden", rounded, className)}
-      style={{ background: `linear-gradient(145deg, ${color}, ${accent})` }}
+      style={{ background: `linear-gradient(145deg, ${color || "#1a1a1a"}, ${accent || "#0a0a0a"})` }}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.45),transparent_42%)]" />
       {src ? (
         <img
+          key={src}
           src={src}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-          onError={() => setStage((s) => (s === 0 && fallbackUrl ? 1 : 2))}
+          alt={title}
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          onLoad={() => setLoaded(true)}
+          onError={() => setStage((s) => Math.min(s + 1, candidates.length))}
+          className={cn("absolute inset-0 h-full w-full object-cover transition-opacity duration-300", loaded ? "opacity-100" : "opacity-0")}
         />
-      ) : (
+      ) : null}
+      {!src || !loaded ? (
         <span className="absolute inset-0 flex items-center justify-center text-2xl font-extrabold tracking-tight text-white/90">
           {title.slice(0, 1).toUpperCase()}
         </span>
-      )}
+      ) : null}
     </div>
   );
 }
 
 export function ytCover(youtubeId?: string) {
-  return youtubeId ? `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg` : undefined;
+  return youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : undefined;
 }
 
 export function sourceLabel(track: Track) {

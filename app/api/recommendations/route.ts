@@ -6,13 +6,15 @@ import type { RegionId, Track } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-const PALETTE: Array<[string, string]> = [
-  ["#1DB954", "#0d3b22"],
-  ["#E8115B", "#3a0d1c"],
-  ["#7358FF", "#24185C"],
-  ["#F5A623", "#5c3b08"],
-  ["#14B8A6", "#083833"],
-  ["#4C8DFF", "#101a33"],
+const PALETTE = [
+  ["#ffffff", "#3a3a3a"],
+  ["#d4d4d4", "#262626"],
+  ["#a3a3a3", "#1c1c1c"],
+  ["#f5f5f5", "#333333"],
+  ["#e5e5e5", "#2e2e2e"],
+  ["#b3b3b3", "#242424"],
+  ["#cfcfcf", "#303030"],
+  ["#9a9a9a", "#202020"],
 ];
 
 type RecItem = { youtubeId: string; title: string; channelTitle: string; thumbnail: string; publishedAt: string; duration: number };

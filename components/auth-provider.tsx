@@ -14,6 +14,8 @@ type AuthApi = {
   signIn: (email: string, password: string) => Promise<string | null>;
   signUp: (email: string, password: string) => Promise<string | null>;
   signInGoogle: () => Promise<string | null>;
+  signInAnonymous: () => Promise<string | null>;
+  verifyEmailOtp: (email: string, token: string) => Promise<string | null>;
   signInDemo: () => void;
   signOut: () => Promise<void>;
 };
@@ -45,11 +47,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     let active = true;
+    const upsertProfile = (u: { id: string; email?: string | null; user_metadata?: Record<string, unknown> }) => {
+      void supabase
+        .from("profiles")
+        .upsert({ id: u.id, email: u.email ?? "", name: nameFrom(u.email, u.user_metadata as { full_name?: string; name?: string }) }, { onConflict: "id" })
+        .then(() => undefined);
+    };
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
       const sessionUser = data.session?.user;
       if (sessionUser) {
         localStorage.removeItem(DEMO_KEY);
+        upsertProfile(sessionUser);
         setUser({
           id: sessionUser.id,
           email: sessionUser.email ?? "",
@@ -72,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         localStorage.removeItem(DEMO_KEY);
+        upsertProfile(session.user);
         setUser({
           id: session.user.id,
           email: session.user.email ?? "",
@@ -97,6 +107,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = useCallback(async (email: string, password: string) => {
     const supabase = getSupabaseBrowser();
     if (!supabase) return "Supabase не настроен. Заполните .env.local или войдите в демо-режиме.";
+    // Если активна анонимная/гостевая сессия — выходим, иначе signUp
+    // вернёт её вместо создания email-аккаунта
+    const { data: sess } = await supabase.auth.getSession();
+    if (sess.session) await supabase.auth.signOut();
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return error.message;
     if (!data.session) return "Аккаунт создан. Если в Supabase включено подтверждение почты, откройте письмо и войдите.";
@@ -113,6 +127,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return error ? error.message : null;
   }, []);
 
+  const verifyEmailOtp = useCallback(async (email: string, token: string) => {
+    const supabase = getSupabaseBrowser();
+    if (!supabase) return "Supabase не настроен.";
+    const { error } = await supabase.auth.verifyOtp({ email, token, type: "signup" });
+    return error ? error.message : null;
+  }, []);
+
+  const signInAnonymous = useCallback(async () => {
+    const supabase = getSupabaseBrowser();
+    if (!supabase) return "Supabase не настроен.";
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) return error.message;
+    if (data.user) {
+      setUser({ id: data.user.id, email: "", name: "Слушатель", provider: "supabase" });
+    }
+    return null;
+  }, []);
+
   const signInDemo = useCallback(() => {
     const demo: AuthUser = { id: "demo", email: "demo@sonora.local", name: "Гость", provider: "demo" };
     localStorage.setItem(DEMO_KEY, JSON.stringify(demo));
@@ -127,8 +159,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, configured, signIn, signUp, signInGoogle, signInDemo, signOut }),
-    [user, loading, configured, signIn, signUp, signInGoogle, signInDemo, signOut]
+    () => ({ user, loading, configured, signIn, signUp, signInGoogle, signInAnonymous, verifyEmailOtp, signInDemo, signOut }),
+    [user, loading, configured, signIn, signUp, signInGoogle, signInAnonymous, verifyEmailOtp, signInDemo, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

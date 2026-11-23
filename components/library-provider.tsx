@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { catalogTrack, coverPalette, seedPlaylists } from "@/lib/catalog";
 import { deleteAudio, putAudio } from "@/lib/offline";
 import { deleteRemotePlaylist, pullRemote, pushPlaylists, pushProgress, snapshotsFrom } from "@/lib/sync";
@@ -82,6 +83,8 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
   const [editor, setEditor] = useState<Editor>(null);
   const userRef = useRef(user);
   userRef.current = user;
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   useEffect(() => {
     setState(loadState());
@@ -238,6 +241,17 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toggleLike = useCallback((track: Track) => {
+    const likedNow = stateRef.current?.playlists.find((p) => p.id === "liked")?.items.some((i) => i.trackId === track.id);
+    toast.success(likedNow ? "Удалено из любимых" : "Добавлено в любимые");
+    // Синхронизация с сервером для авторизованных (fire-and-forget)
+    if (userRef.current?.provider === "supabase" && track.youtubeId) {
+      const url = likedNow ? `/api/user/likes?youtube_id=${encodeURIComponent(track.youtubeId)}` : "/api/user/likes";
+      void fetch(url, {
+        method: likedNow ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: likedNow ? undefined : JSON.stringify({ youtube_id: track.youtubeId, title: track.title, artist: track.artist, cover: track.coverUrl }),
+      }).catch(() => undefined);
+    }
     setState((current) => {
       const extraTracks =
         track.source === "catalog" || current.extraTracks.some((item) => item.id === track.id)

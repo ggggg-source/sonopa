@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Play } from "lucide-react";
-import { catalog, seedPlaylists } from "@/lib/catalog";
+import { catalog, catalogTrack, seedPlaylists } from "@/lib/catalog";
 import { greetingForHour, formatTime } from "@/lib/format";
 import { genres } from "@/lib/regions";
 import { getHistory } from "@/lib/userHistory";
-import { CoverArt } from "@/components/cover";
+import { CoverArt, ytCover } from "@/components/cover";
 import { useAuth } from "@/components/auth-provider";
 import { useLibrary } from "@/components/library-provider";
 import { usePlayback } from "@/components/player-provider";
@@ -84,6 +84,9 @@ export function HomeView() {
 
   useEffect(() => {
     setGreeting(greetingForHour(new Date().getHours()));
+    const ids = getHistory();
+    setHasHistory(ids.length > 0);
+    setHistoryIds(ids);
   }, []);
 
   const resume = useMemo(() => {
@@ -99,7 +102,12 @@ export function HomeView() {
   const cis = catalog.filter((track) => track.region === "cis").slice(0, 5);
   const europe = catalog.filter((track) => track.region === "europe").slice(0, 5);
 
-  const hasHistory = useMemo(() => getHistory().length > 0, []);
+  const [hasHistory, setHasHistory] = useState(false);
+  const [historyIds, setHistoryIds] = useState<string[]>([]);
+  const recentTracks = useMemo(
+    () => historyIds.map((id) => catalogTrack(id)).filter((track): track is Track => Boolean(track)).slice(0, 10),
+    [historyIds]
+  );
   const russiaChart = useChartSection("russia");
   const worldChart = useChartSection("global");
   const newReleases = useRecommendations("new");
@@ -125,7 +133,7 @@ export function HomeView() {
           }}
           className="mt-6 flex w-full items-center gap-4 rounded-lg bg-white/5 p-3 text-left hover:bg-white/10 md:max-w-xl"
         >
-          <CoverArt title={resume.track.title} color={resume.track.coverColor} accent={resume.track.coverAccent} coverUrl={resume.track.coverUrl} className="h-14 w-14" />
+          <CoverArt title={resume.track.title} color={resume.track.coverColor} accent={resume.track.coverAccent} coverUrl={resume.track.coverUrl} fallbackUrl={ytCover(resume.track.youtubeId)} className="h-14 w-14" />
           <span className="min-w-0 flex-1">
             <span className="block text-xs uppercase tracking-wide text-muted">Продолжить</span>
             <span className="block truncate font-semibold">{resume.track.title}</span>
@@ -148,7 +156,7 @@ export function HomeView() {
                 const tracks = tracksIn(playlist);
                 if (tracks[0]) playTrack(tracks[0], tracks, { playlistId: playlist.id });
               }}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-green text-black opacity-0 shadow-lift transition hover:scale-105 group-hover:opacity-100"
+              className="flex h-10 w-10 scale-75 items-center justify-center rounded-full bg-green text-black opacity-0 shadow-lift transition duration-200 group-hover:scale-100 group-hover:opacity-100"
             >
               <Play className="ml-0.5 h-4 w-4 fill-black" />
             </button>
@@ -198,6 +206,16 @@ export function HomeView() {
         onPlay={(track, queue) => playTrack(track, queue)}
       />
 
+      {recentTracks.length ? (
+        <Section title="Недавно прослушанные">
+          <CardGrid>
+            {recentTracks.map((track) => (
+              <TrackCard key={track.id} track={track} onPlay={() => playTrack(track, recentTracks)} />
+            ))}
+          </CardGrid>
+        </Section>
+      ) : null}
+
       <div className="mt-10">
         <Section title="Рекомендации">
           <CardGrid>
@@ -211,6 +229,10 @@ export function HomeView() {
                 href={`/playlist/${playlist.id}`}
                 onPlay={() => {
                   const tracks = tracksIn(playlist);
+                  if (tracks[0]) playTrack(tracks[0], tracks, { playlistId: playlist.id });
+                }}
+                onShuffle={() => {
+                  const tracks = [...tracksIn(playlist)].sort(() => Math.random() - 0.5);
                   if (tracks[0]) playTrack(tracks[0], tracks, { playlistId: playlist.id });
                 }}
               />

@@ -37,7 +37,7 @@ export function PlaylistDialog() {
       <form
         role="dialog"
         aria-labelledby="playlist-dialog-title"
-        className="w-full max-w-md rounded-xl bg-[#282828] p-5 shadow-lift"
+        className="w-full max-w-md rounded-xl bg-[#242424] p-5 shadow-lift"
         onMouseDown={(event) => event.stopPropagation()}
         onSubmit={(event) => {
           event.preventDefault();

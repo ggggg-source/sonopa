@@ -20,6 +20,7 @@ type PlaybackApi = {
   shuffle: boolean;
   repeat: RepeatMode;
   error: string | null;
+  buffering: boolean;
   playTrack: (track: Track, queue?: Track[], options?: PlayOptions) => void;
   playAt: (index: number) => void;
   toggle: () => void;
@@ -73,6 +74,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState<RepeatMode>("off");
   const [error, setError] = useState<string | null>(null);
+  const [buffering, setBuffering] = useState(false);
   const [playlistId, setPlaylistId] = useState<string | undefined>(undefined);
   const [startToken, setStartToken] = useState(0);
   const [startAt, setStartAt] = useState(0);
@@ -178,7 +180,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       setPlaying(true);
       rememberRef.current(track);
       for (const item of list) rememberRef.current(item);
-      if (track.source === "youtube" && track.youtubeId) addToHistory(track.youtubeId);
+      if (track.source === "youtube" && track.youtubeId) addToHistory(track.youtubeId, { title: track.title, artist: track.artist, cover: track.coverUrl });
     },
     [shuffle, updateIndex]
   );
@@ -361,6 +363,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       shuffle,
       repeat,
       error,
+      buffering,
       playTrack,
       playAt,
       toggle,
@@ -385,6 +388,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       shuffle,
       repeat,
       error,
+      buffering,
       playTrack,
       playAt,
       toggle,
@@ -413,6 +417,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         onProgress={emit}
         onEnded={next}
         onError={setError}
+        onBuffering={setBuffering}
         seekRef={ytSeek}
       />
     </PlaybackContext.Provider>
